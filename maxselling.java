@@ -9,6 +9,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -16,32 +17,64 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 
 public class maxselling {
-	public static class Mymapper extends Mapper<LongWritable,Text,Text,FloatWritable>
+	public static class Mymapper extends Mapper<LongWritable,Text,Text,Text>
 	{
 		public void map(LongWritable key,Text value,Context context) throws IOException, InterruptedException
 		{
 		String str[]=value.toString().split(",");
-		
-		context.write(new Text(str[1]),new FloatWritable(s+" "f));
+		//int a=Integer.parseInt(str[4]);
+		//int b=Integer.parseInt(str[2]);
+		context.write(new Text(str[3]),new Text(str[2]+" "+str[4]));
 		}
 	}
-	public static class Myreducer extends Reducer<Text,FloatWritable,Text,FloatWritable>
+	public static class part extends Partitioner<Text,Text>
 	{
-	public void reduce(Text key,Iterable<FloatWritable> value,Context context) throws IOException, InterruptedException
-	{
-		float sum=0,count=0,x=0;
-		for(FloatWritable v:value)
+		public int getPartition(Text key,Text value,int partition)
 		{
-			if(v.get()>sum)
+			String str[]=value.toString().split(",");
+			int a=Integer.parseInt(str[0]);
+			if(a<20)
 			{
-				sum=v.get();
+				return 0;
+			}
+			if(a>20 && a<30)
+			{
+				return 1;
+			}
+			else if(a>30)
+			{
+				return 2;
+			}
+			else
+			{
+				return partition;
+			}
+				
+		}
+	}
+	
+	
+	public static class Myreducer extends Reducer<Text,Text,Text,Text>
+	{
+	public void reduce(Text key,Iterable<IntWritable> value,Context context) throws IOException, InterruptedException
+	{
+		int sum=0,count=0,x=0;
+		String s="",y="";
+		for(IntWritable v:value)
+		{
+			String s1[]=v.toString().split(",");
+			int a=Integer.parseInt(s1[1]);
+			x=Integer.parseInt(s1[1].toString());
+			if(a>sum)
+			{
+				sum=a;
 			}
 			
 			
-			
 		}
+		String
 		 
-		context.write(key,new FloatWritable(sum));
+		context1.write(key,new Text(y));
 	}
 	}
 	public static void main(String args[]) throws IOException, ClassNotFoundException, InterruptedException
@@ -50,11 +83,14 @@ public class maxselling {
 		Job job=Job.getInstance(conf,"max");
 		job.setJarByClass(maxselling.class);
 		job.setMapperClass(Mymapper.class);
-		job.setReducerClass(Myreducer.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(FloatWritable.class);
+		job.setMapOutputValueClass(IntWritable.class);
+		job.setPartitionerClass(part.class);
+		job.setReducerClass(Myreducer.class);
+		job.setNumReduceTasks(3);
+		
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(FloatWritable.class);
+		job.setOutputValueClass(IntWritable.class);
 		FileInputFormat.addInputPath(job,new Path(args[0]));
 		FileSystem.get(conf).delete(new Path(args[1]),true);
 		FileOutputFormat.setOutputPath(job,new Path(args[1]));
