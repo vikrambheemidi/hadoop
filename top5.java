@@ -1,5 +1,3 @@
-
-
 import java.io.IOException;
 import java.util.TreeMap;
 
@@ -23,21 +21,18 @@ public class top5 {
 		public void map(LongWritable key,Text value,Context context) throws IOException, InterruptedException
 		{
 		String str[]=value.toString().split(",");
-		int v=Integer.parseInt(str[4].toString());
-		int w=Integer.parseInt(str[5].toString());
-		int q=Integer.parseInt(str[9].toString());
-		int x=Integer.parseInt(str[6].toString());
+		int v=Integer.parseInt(str[4]);
+		int w=Integer.parseInt(str[5]);
+		int q=Integer.parseInt(str[9]);
+		int x=Integer.parseInt(str[6]);
 		//int y=Integer.parseInt(str[8].toString());
-		if(x>1450)
-			if(str[8].substring(4,9).contains("May 20"))
-		if(q>60000 && q<120000)
-			if(str[7].equals("Residential"))
-				if(v==3)
-					if(w==2)
-				
+		if(x>1450 && (str[8].substring(4,9).contains("May 20"))
+		&& (q>60000 && q<120000) && (str[7].equals("Residential")) &&
+					(v==3) && (w==2));
+					
 		context.write(new Text(str[1]),new Text(str[7]+" "+q));
 		}
-	}
+				}
 public static class Myreducer extends Reducer<Text,Text,Text,Text>
 	{
 	TreeMap tr=new TreeMap();
@@ -46,7 +41,7 @@ public static class Myreducer extends Reducer<Text,Text,Text,Text>
 		int max=0;
 		for(Text v:value)
 		{
-			String[] s1=v.toString().split(",");
+			String[] s1=v.toString().split(" ");
 			int i=Integer.parseInt(s1[1].toString());
 			if(i>max)
 			{
@@ -57,10 +52,10 @@ public static class Myreducer extends Reducer<Text,Text,Text,Text>
 			{
 				tr.remove(tr.firstKey());
 			}
-			
+			context.write(key,new Text(tr.toString()+" "+s1[0]));
 		}
-		String[] s1 = null;
-		context.write(key,new Text(tr.toString()+" "+s1[0]));
+		
+		
 	}
 	}
 	public static void main(String args[]) throws IOException, ClassNotFoundException, InterruptedException
