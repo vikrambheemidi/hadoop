@@ -28,17 +28,21 @@ public class canada {
 	public static void main(String[] args) throws Exception {
 	    Configuration conf = new Configuration();
 	    //conf.set("name", "value")
-	    
+	   
 	    Job job = Job.getInstance(conf, "Volume Count");
+	    
 	    job.setJarByClass(canada.class);
+	    //conf.set("mapreduce.input.fileinputformat.split.minsize","134217728");
 	    job.setMapperClass(MapClass.class);
 	    //job.setCombinerClass(ReduceClass.class);
 	   //job.setReducerClass(ReduceClass.class);
 	   job.setMapOutputKeyClass(Text.class);
 	   job.setMapOutputValueClass(Text.class);
+	   
 	    job.setNumReduceTasks(0);
 	    job.setOutputKeyClass(Text.class);
 	    job.setOutputValueClass(Text.class);
+	    
 	    FileInputFormat.addInputPath(job, new Path(args[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    FileSystem.get(conf).delete(new Path(args[1]), true);
